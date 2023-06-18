@@ -6,13 +6,13 @@ import World from './world'
 import Chunk from './chunk'
 
 class Game {
-  private scene: THREE.Scene
+  public scene: THREE.Scene
 
-  private camera: THREE.PerspectiveCamera
+  public camera: THREE.PerspectiveCamera
 
   private stats: Stats
 
-  private renderer: THREE.WebGLRenderer
+  public renderer: THREE.WebGLRenderer
 
   public world: World
 
@@ -28,9 +28,10 @@ class Game {
     document.body.appendChild(this.stats.dom)
 
     this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 100)
-    this.camera.position.set(10, 5, 10)
+    this.camera.position.set(2, 2, 2)
 
     this.scene = new THREE.Scene()
+    this.scene.background = new THREE.Color('lightblue')
 
     this.start()
   }
@@ -38,20 +39,15 @@ class Game {
   animate () {
     this.stats.begin()
     this.renderer.render(this.scene, this.camera)
+    document.getElementById('drawCalls').innerText = this.renderer.info.render.calls
     this.stats.end()
   }
 
   start () {
-    World.LoadTextures()
     this.world = new World(this.scene)
-    this.world.chunks.forEach((row: Array<Chunk>) => {
-      row.forEach((chunk: Chunk) => {
-        this.scene.add(chunk.object)
-      })
-    })
     this.world.render()
 
-    this.renderer = new THREE.WebGLRenderer({ antialias: true })
+    this.renderer = new THREE.WebGLRenderer({ antialias: false })
     this.renderer.setSize(window.innerWidth, window.innerHeight)
     this.renderer.setAnimationLoop(() => {
       this.animate()
@@ -86,12 +82,7 @@ class Game {
       return
     }
     const chunk = intersects[0].object.userData.chunk
-    const blockIndices = intersects[0].object.userData.indices
-
-    chunk.blocks[blockIndices.chunkRow - 1][blockIndices.arrayIndex] = null
-
-    intersects[0].object.removeFromParent()
-    this.world.updateChunk(chunk)
+    console.log(chunk)
   }
 }
 
@@ -102,13 +93,7 @@ if (wireframeButton) {
   wireframeButton.addEventListener('click', () => {
     game.world.chunks.forEach((row: Array<Chunk>) => {
       row.forEach((chunk: Chunk) => {
-        chunk.blocks.forEach((row) => {
-          row.forEach((b) => {
-            if (b !== null) {
-              b.toggleWireframe()
-            }
-          })
-        })
+        chunk.toggleWireframe()
       })
     })
   })
